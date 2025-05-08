@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Whack a mole </title>
+    <link rel="stylesheet" href="mole.css">
+    <script src="mole.js" defer></script>
+</head>
+
+<body>
+    <h1>Mario Whack a mole</h1>
+    <div id="game-info">
+        <p id="timer">Time: 60s</p>
+        <p id="score">Score: 0</p>
+        <p id="high-score">High Score: 0</p>
+    </div>
+    <div id="board">
+        <!-- 3x3 grid tiles -->
+        <div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+    </div>
+    <button onclick="startGame()">Start Game</button>
+
+    <script>
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let timeLeft = 60; // 1-minute timer
+        let moleInterval = 1000; // Mole appears every 1 second initially
+        let gameTimer, moleTimer;
+
+        // Display high score on page load
+        document.getElementById('high-score').textContent = `High Score: ${highScore}`;
+
+        // Start the game
+        function startGame() {
+            score = 0;
+            timeLeft = 60;
+            moleInterval = 1000;
+
+            document.getElementById('score').textContent = `Score: ${score}`;
+            document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+
+            // Start the game timer
+            gameTimer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Time: ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(gameTimer);
+                    clearInterval(moleTimer);
+                    endGame();
+                }
+            }, 1000);
+
+            // Start spawning moles
+            spawnMole();
+        }
+
+        // Spawn a mole at random intervals
+        function spawnMole() {
+            const tiles = document.querySelectorAll('#board div');
+            const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
+
+            // Remove any existing mole before adding a new one
+            tiles.forEach(tile => tile.innerHTML = '');
+
+            const mole = document.createElement('img');
+            mole.src = './mole.png';
+            mole.classList.add('mole');
+            randomTile.appendChild(mole);
+
+            mole.addEventListener('click', () => {
+                score++;
+                document.getElementById('score').textContent = `Score: ${score}`;
+                mole.remove();
+
+                // Speed up mole appearance as score increases
+                if (score % 5 === 0 && moleInterval > 300) {
+                    moleInterval -= 100;
+                }
+            });
+
+            moleTimer = setTimeout(() => {
+                if (mole.parentElement) {
+                    mole.remove();
+                }
+                if (timeLeft > 0) {
+                    spawnMole();
+                }
+            }, moleInterval);
+        }
+
+        // End the game
+        function endGame() {
+            alert(`Game Over! Your score: ${score}`);
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('highScore', highScore);
+                document.getElementById('high-score').textContent = `High Score: ${highScore}`;
+            }
+        }
+    </script>
+</body>
+</html>
+
